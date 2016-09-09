@@ -12,15 +12,18 @@ db = SQLAlchemy()
 
 
 def create_app(config_name):
+    # 初始化app，并通过config文件配置app
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
+    # 初始化各种扩展
     bootstrap.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
     db.init_app(app)
 
+    # 导入并注册各种蓝图
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
