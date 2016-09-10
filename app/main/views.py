@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import render_template, session, redirect, url_for, current_app
+from flask_login import login_required
 
 from . import main
 from .forms import NameForm
@@ -14,6 +15,7 @@ def index():
 
 
 @main.route('/user', methods=['GET', 'POST'])
+@login_required
 def user():
     form = NameForm()
     if form.validate_on_submit():
