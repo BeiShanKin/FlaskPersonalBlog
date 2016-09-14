@@ -2,7 +2,7 @@
 from flask import render_template, url_for, redirect, flash, request
 from . import auth
 from flask_login import login_required, current_user, logout_user, login_user
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm, ChangePasswordForm
 from ..models import User
 from .. import db
 from ..email import send_email
@@ -49,9 +49,9 @@ def confirm(token):
     if current_user.confirmed:
         return redirect(url_for('main.index'))
     if current_user.confirm(token):
-        flash('You have confirmed your account. Thanks!')
+        flash('你已经通过了验证，非常感谢！')
     else:
-        flash('The confirmation link is invalid or has expired.')
+        flash('验证链接无效或过期，请重新申请发送验证链接。')
     return redirect(url_for('main.index'))
 
 
@@ -59,9 +59,9 @@ def confirm(token):
 @login_required
 def resend_confirmation():
     token = current_user.generate_confirmation_token()
-    send_email(current_user.email, 'Confirm Your Account',
+    send_email(current_user.email, '账户验证',
                'auth/email/confirm', user=current_user, token=token)
-    flash('A new confirmation email has been sent to you by email.')
+    flash('一个新的验证邮件已经发送到了你的邮箱中，请查收。')
     return redirect(url_for('main.index'))
 
 
@@ -73,6 +73,21 @@ def before_request():
 
 @auth.route('/unconfirmed')
 def unconfirmed():
-    if current_user.is_anonymous() or current_user.confirmed:
+    if current_user.is_anonymous or current_user.confirmed:
         return redirect(url_for('main.index'))
-    return render_template('auth/unconfirmed.html')
+    return render_template('auth/unconfirmed.html', current_user=current_user)
+
+
+@auth.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if current_user.verify_password(form.old_password.data):
+            current_user.password = form.password.data
+            db.session.add(current_user)
+            flash('密码修改成功')
+            return redirect(url_for('main.index'))
+        else:
+            flash('旧密码错误')
+    return render_template('auth/change_password.html', form=form)
