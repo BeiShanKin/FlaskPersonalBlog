@@ -39,3 +39,15 @@ class ChangePasswordForm(Form):
         'password2', message='密码不一致')])
     password2 = PasswordField('确认密码', validators=[Required()])
     submit = SubmitField('确认修改')
+
+
+class SendEmailForm(Form):
+    email = StringField('邮箱', validators=[Required(), Length(1, 64), Email()])
+    submit = SubmitField('发送邮件')
+
+
+class ResetPasswordForm(Form):
+    password = PasswordField('新密码', validators=[Required(), EqualTo(
+        'password2', message='密码不一致')])
+    password2 = PasswordField('确认密码', validators=[Required()])
+    submit = SubmitField('确认修改')
